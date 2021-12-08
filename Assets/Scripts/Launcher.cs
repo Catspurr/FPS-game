@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using ExitGames.Client.Photon;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
+using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 public class Launcher : MonoBehaviourPunCallbacks
@@ -23,7 +25,10 @@ public class Launcher : MonoBehaviourPunCallbacks
     private void Start()
     {
         print("Connecting to Master");
-        PhotonNetwork.ConnectUsingSettings();
+        if (PhotonNetwork.NetworkingClient.LoadBalancingPeer.PeerState == PeerStateValue.Disconnected)
+        {
+            PhotonNetwork.ConnectUsingSettings();
+        }
     }
 
     public override void OnConnectedToMaster()
@@ -37,7 +42,6 @@ public class Launcher : MonoBehaviourPunCallbacks
     {
         print("Joined Lobby!");
         MenuManager.Instance.OpenMenu("Title");
-        PhotonNetwork.NickName = $"Player {Random.Range(0, 1001)}";
     }
 
     public void CreateRoom()

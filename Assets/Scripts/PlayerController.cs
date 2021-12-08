@@ -4,10 +4,12 @@ using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 {
-    [SerializeField] private GameObject cameraRig;
+    [SerializeField] private GameObject cameraRig, UICanvas, scoreboard, escapeMenu;
+    [SerializeField] private Image healthBarImage;
     [SerializeField] private float mouseSensitivity, walkSpeed, sprintSpeed, jumpForce, smoothTime;
 
     [SerializeField] private Item[] items;
@@ -39,20 +41,43 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         if (_photonView.IsMine)
         {
             EquipItem(0);
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
         else
         {
             Destroy(GetComponentInChildren<Camera>().gameObject);
             Destroy(_rigidbody);
+            Destroy(UICanvas);
         }
     }
 
     private void Update()
     {
         if (!_photonView.IsMine) return;
-        Look();
-        Move();
-        Items();
+        if (!escapeMenu.activeSelf)
+        {
+            Look();
+            Move();
+            Items();
+        }
+        
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            scoreboard.SetActive(true);
+        }
+        
+        if (Input.GetKeyUp(KeyCode.Tab))
+        {
+            scoreboard.SetActive(false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            escapeMenu.SetActive(true);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
 
         if (transform.position.y < -10f)
         {
@@ -177,6 +202,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         if (!_photonView.IsMine) return;
 
         _currentHealth -= damage;
+
+        healthBarImage.fillAmount = _currentHealth / _maxHealth;
+        
         if (_currentHealth <= 0f)
         {
             Die();
